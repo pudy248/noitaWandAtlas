@@ -518,12 +518,12 @@ function init()
             y_input.value = "18654"
         }
 		if (parseInt(event.target.value) == 3) {
-			document.getElementById("wand_body").style = "display: none;";
-			document.getElementById("potion_body").style = "display: block;";
+			document.getElementById("wand_body").style.display = "none";
+			document.getElementById("potion_body").style.display = "block";
 		}
 		else {
-			document.getElementById("wand_body").style = "display: block;";
-			document.getElementById("potion_body").style = "display: none;";
+			document.getElementById("wand_body").style.display = "block";
+			document.getElementById("potion_body").style.display = "none";
 		}
     }
 
