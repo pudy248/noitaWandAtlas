@@ -21,7 +21,7 @@
       <div class="left_panel">
         <form onsubmit="return update_orbs()">
           <div class="row">
-            <span>Seed: <input type="number" value=0 id="seed"></span>
+            <span>Seed: <input type="number" value=1 id="seed"></span>
             <span>NG+ <input type="number" value=0 id="ng"></span>
           </div>
           <div class="row">
@@ -34,33 +34,43 @@
           </div>
           <div class="row"><label for="search_mode">Search type:</label>
             <select id="search_mode" name="search_mode">
-              <option value="0">EoE Chest</option>
+              <option value="0">EoE Wand</option>
               <option value="1">Taikasauva</option>
               <option value="2">Tiny Drop</option>
+              <option value="3">EoE Potion</option>
             </select>
           </div>
-          <div class="row">
-            <span>Stat:</span>
-            <select id="stat" name="stat">
-              <option value="0">Capacity</option>
-              <option value="1">Multicast</option>
-              <option value="2">Cast Delay</option>
-              <option value="3">Reload</option>
-              <option value="4">Max Mana</option>
-              <option value="5">Mana Regen</option>
-              <option value="6">Spread</option>
-              <option value="7">Speed</option>
-            </select>
+          <div id="wand_body" style="display: block;">
+            <div class="row">
+              <span>Stat:</span>
+              <select id="stat" name="stat">
+                <option value="0">Capacity</option>
+                <option value="1">Multicast</option>
+                <option value="2">Cast Delay</option>
+                <option value="3">Reload</option>
+                <option value="4">Max Mana</option>
+                <option value="5">Mana Regen</option>
+                <option value="6">Spread</option>
+                <option value="7">Speed</option>
+              </select>
+            </div>
+            <div class="row">
+              <span class="stat_span">Value: <input type="number" class="stat_row" step="any" value=27 id="threshold"></span>
+              <span class="checkbox_container">Less Than<input type="checkbox" id="less_than"></span>
+              <span class="checkbox_container">Non-shuffle<input type="checkbox" id="nonshuffle"></span>
+              <span class="checkbox_container">No AC<input type="checkbox" id="no_ac"></span>
+            </div>
+            <div class="row">
+              <button type="submit" id="true_knowledge_button">Seek Big Wands</button>
+            </div>
           </div>
-          <div class="row">
-            <span class="stat_span">Value: <input type="number" class="stat_row" step="any" value=27 id="threshold"></span>
-            <span class="checkbox_container">Less Than<input type="checkbox" id="less_than"></span>
-            <span class="checkbox_container">Non-shuffle<input type="checkbox" id="nonshuffle"></span>
-            <span class="checkbox_container">No AC<input type="checkbox" id="no_ac"></span>
-          </div>
-          <div class="row">
-            <button type="submit" id="true_knowledge_button">Seek Big Wands</button>
-            <!-- <input type="submit" id="normal_orb_button"value="Normal Orbs Only"> -->
+          <div id="potion_body" style="display: none;">
+            <div class="row">
+              <span class="stat_span">Material: <input type="string" class="stat_row" step="any" value="magic_liquid_hp_regeneration_unstable" id="material"></span>
+            </div>
+            <div class="row">
+              <button type="submit" id="true_knowledge_button">Seek Cool Flasks</button>
+            </div>
           </div>
         </form>
         <div id="output_box">
@@ -69,17 +79,16 @@
         </div>
         <div class="description">
           <p>
-            This website displays the locations Big Wands that can be spawned in various ways. Such wands are occasionally useful for obscure builds that require more than 26 slots.
+            This website displays the locations of Big Wands that can be spawned in various ways (and now potions!). Such wands are occasionally useful for obscure builds that require more than 26 slots.
           </p>
           <p>
-            The Great Chest wands can be obtained by getting a great chest to spawn at exactly the given coordinates. Usually this is done with the End of Everything. Taikasauva wands are spawned with Summon Taikasauva.
-			Tiny drops check the tier 10 non-shufflers dropped when Limatoukka is killed. The coordinates record the pixel that Tiny should die on.
+            Taikasauva wands are the most accessible, and just require spawning a taikasauva at the specified coordinates. End of Everything drops work the same as those of the original Orb Atlas.
           </p>
           <p>
-            The farland button sets the search to locations where coordinate rounding allows for a larger than 1-pixel region to align the chest. This only affects chests, and not taikasauva or Tiny drops.
+            Potions are specified as text and must be the exact in-code name of the material, as seen in materials.xml.
           </p>
 		  <p>
-			All of the web design for this site was done by Kaliuresis! I'm only responsible for the wand code.
+			All of the web design for this site was done by Kaliuresis! I'm only responsible for the additional Noita searching features.
 		  </p>
         </div>
       </div>
