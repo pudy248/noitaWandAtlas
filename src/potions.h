@@ -49,7 +49,7 @@ const Material potionMaterialsSecret[secretMaterialCount] = {
 	PURIFYING_POWDER
 };
 
-constexpr int sandMaterialCount = 82;
+constexpr int sandMaterialCount = 83;
 const Material potionSands[sandMaterialCount] = {
 	MUD,
 	CONCRETE_SAND,
@@ -106,6 +106,7 @@ const Material potionSands[sandMaterialCount] = {
 	GLOWSHROOM,
 	BUSH_SEED,
 	POO,
+	MAMMI,
 	GLASS_BROKEN,
 	MOSS_RUST,
 	FUNGI_CREEPING_SECRET,

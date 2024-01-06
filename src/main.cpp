@@ -67,7 +67,7 @@ void* CheckGreatChestLoot(int x, int y, uint32_t worldSeed, bool wand)
 		count--;
 		int rnd = random.Random(1, 100);
 
-		if (rnd <= 30) {
+		if (rnd <= 10) {
 			if (!wand) {
 				rnd = random.Random(0, 100);
 				if (rnd <= 30)
@@ -85,11 +85,11 @@ void* CheckGreatChestLoot(int x, int y, uint32_t worldSeed, bool wand)
 			}
 			continue;
 		}
-		else if (rnd <= 33)
+		else if (rnd <= 15)
 		{
 			continue;
 		}
-		else if (rnd <= 38)
+		else if (rnd <= 18)
 		{
 			rnd = random.Random(1, 30);
 			continue;
@@ -99,14 +99,14 @@ void* CheckGreatChestLoot(int x, int y, uint32_t worldSeed, bool wand)
 			rnd = random.Random(0, 100);
 			if (wand) {
 				Wand* w = new Wand;
-				if (rnd <= 25) *w = GetWandWithLevel(worldSeed, x, y, 3, false);
-				else if (rnd <= 50) *w = GetWandWithLevel(worldSeed, x, y, 3, true);
-				else if (rnd <= 75) *w = GetWandWithLevel(worldSeed, x, y, 4, false);
-				else if (rnd <= 90) *w = GetWandWithLevel(worldSeed, x, y, 4, true);
-				else if (rnd <= 96) *w = GetWandWithLevel(worldSeed, x, y, 5, false);
-				else if (rnd <= 98) *w = GetWandWithLevel(worldSeed, x, y, 5, true);
+				if (rnd <= 25) *w = GetWandWithLevel(worldSeed, x, y, 4, false);
+				else if (rnd <= 50) *w = GetWandWithLevel(worldSeed, x, y, 4, true);
+				else if (rnd <= 75) *w = GetWandWithLevel(worldSeed, x, y, 5, false);
+				else if (rnd <= 90) *w = GetWandWithLevel(worldSeed, x, y, 5, true);
+				else if (rnd <= 96) *w = GetWandWithLevel(worldSeed, x, y, 6, false);
+				else if (rnd <= 98) *w = GetWandWithLevel(worldSeed, x, y, 6, true);
 				else if (rnd <= 99) *w = GetWandWithLevel(worldSeed, x, y, 6, false);
-				else *w = GetWandWithLevel(worldSeed, x, y, 6, true);
+				else *w = GetWandWithLevel(worldSeed, x, y, 10, true);
 				return (void*)w;
 			}
 			else continue;
@@ -116,7 +116,7 @@ void* CheckGreatChestLoot(int x, int y, uint32_t worldSeed, bool wand)
 			rnd = random.Random(0, 100);
 			continue;
 		}
-		else if (rnd <= 99)
+		else if (rnd <= 98)
 			count += 2;
 		else
 			count += 3;

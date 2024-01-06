@@ -2,12 +2,6 @@
 
 #include "enums.h"
 
-struct SpellData
-{
-	Spell s;
-	ActionType type;
-	double spawn_probabilities[11];
-};
 struct SpellProb
 {
 	double p;
