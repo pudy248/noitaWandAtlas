@@ -38,6 +38,7 @@
               <option value="1">Taikasauva</option>
               <option value="2">Tiny Drop</option>
               <option value="3">EoE Potion</option>
+              <option value="4">Taikasauva Spell</option>
             </select>
           </div>
           <div id="wand_body" style="display: block;">
@@ -60,17 +61,19 @@
               <span class="checkbox_container">Non-shuffle<input type="checkbox" id="nonshuffle"></span>
               <span class="checkbox_container">No AC<input type="checkbox" id="no_ac"></span>
             </div>
-            <div class="row">
-              <button type="submit" id="true_knowledge_button">Seek Big Wands</button>
-            </div>
           </div>
           <div id="potion_body" style="display: none;">
             <div class="row">
               <span class="stat_span">Material: <input type="string" class="stat_row" step="any" value="magic_liquid_hp_regeneration_unstable" id="material"></span>
             </div>
+          </div>
+          <div id="spell_body" style="display: none;">
             <div class="row">
-              <button type="submit" id="true_knowledge_button">Seek Cool Flasks</button>
+              <span class="stat_span">Spell: <input type="string" class="stat_row" step="any" value="Add mana" id="spell"></span>
             </div>
+          </div>
+          <div class="row">
+            <button type="submit" id="true_knowledge_button">Seek Big Wands</button>
           </div>
         </form>
         <div id="output_box">
@@ -85,7 +88,7 @@
             Taikasauva wands are the most accessible, and just require spawning a taikasauva at the specified coordinates. End of Everything drops work the same as those of the original Orb Atlas.
           </p>
           <p>
-            Potions are specified as text and must be the exact in-code name of the material, as seen in materials.xml.
+            Potions are specified as text and must be the exact in-code name of the material, as seen in materials.xml. Spells are similarly text, and follow the exact in-game name (Materials cannot do this because many materials have the same UI name).
           </p>
 		  <p>
 			All of the web design for this site was done by Kaliuresis! I'm only responsible for the additional Noita searching features.

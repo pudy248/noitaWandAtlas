@@ -1,8 +1,8 @@
 #pragma once
 #include "enums.h"
 
-constexpr int standardMaterialCount = 11;
-const Material potionMaterialsStandard[standardMaterialCount] = {
+_data constexpr int standardMaterialCount = 11;
+_data const Material potionMaterialsStandard[standardMaterialCount] = {
 	LAVA,
 	WATER,
 	BLOOD,
@@ -16,8 +16,8 @@ const Material potionMaterialsStandard[standardMaterialCount] = {
 	BLOOD_COLD
 };
 
-constexpr int magicMaterialCount = 12;
-const Material potionMaterialsMagic[magicMaterialCount] = {
+_data constexpr int magicMaterialCount = 12;
+_data const Material potionMaterialsMagic[magicMaterialCount] = {
 	MAGIC_LIQUID_UNSTABLE_TELEPORTATION,
 	MAGIC_LIQUID_POLYMORPH,
 	MAGIC_LIQUID_RANDOM_POLYMORPH,
@@ -32,8 +32,8 @@ const Material potionMaterialsMagic[magicMaterialCount] = {
 	MAGIC_LIQUID_MANA_REGENERATION
 };
 
-constexpr int secretMaterialCount = 13;
-const Material potionMaterialsSecret[secretMaterialCount] = {
+_data constexpr int secretMaterialCount = 13;
+_data const Material potionMaterialsSecret[secretMaterialCount] = {
 	MAGIC_LIQUID_HP_REGENERATION_UNSTABLE,
 	BLOOD_WORM,
 	GOLD,
@@ -49,8 +49,8 @@ const Material potionMaterialsSecret[secretMaterialCount] = {
 	PURIFYING_POWDER
 };
 
-constexpr int sandMaterialCount = 83;
-const Material potionSands[sandMaterialCount] = {
+_data constexpr int sandMaterialCount = 86;
+_data const Material potionSands[sandMaterialCount] = {
 	MUD,
 	CONCRETE_SAND,
 	SAND,
@@ -90,6 +90,8 @@ const Material potionSands[sandMaterialCount] = {
 	GUNPOWDER_UNSTABLE_BOSS_LIMBS,
 	PLASTIC_RED,
 	GRASS,
+	GRASS_HOLY,
+	GRASS_DARKER,
 	GRASS_ICE,
 	GRASS_DRY,
 	FUNGI,
@@ -97,6 +99,7 @@ const Material potionSands[sandMaterialCount] = {
 	MOSS,
 	PLANT_MATERIAL,
 	PLANT_MATERIAL_RED,
+	PLANT_MATERIAL_DARK,
 	CEILING_PLANT_MATERIAL,
 	MUSHROOM_SEED,
 	PLANT_SEED,
@@ -136,14 +139,17 @@ const Material potionSands[sandMaterialCount] = {
 	FUNGI_YELLOW,
 };
 
-constexpr int liquidMaterialCount = 93;
-const Material potionLiquids[liquidMaterialCount] = {
+_data constexpr int liquidMaterialCount = 97;
+_data const Material potionLiquids[liquidMaterialCount] = {
 	WATER,
 	WATER_TEMP,
 	WATER_ICE,
 	WATER_SWAMP,
 	OIL,
 	ALCOHOL,
+	BEER,
+	MILK,
+	MOLUT,
 	SIMA,
 	JUHANNUSSIMA,
 	MAGIC_LIQUID,
@@ -227,6 +233,7 @@ const Material potionLiquids[liquidMaterialCount] = {
 	LIQUID_FIRE_WEAK,
 	LIQUID_FIRE,
 	JUST_DEATH,
+	MIMIC_LIQUID,
 	VOID_LIQUID,
 	WATER_SALT,
 	WATER_FADING,

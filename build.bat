@@ -1,0 +1,2 @@
+cd generated
+emcc -s EXPORTED_FUNCTIONS="['_search_spiral_start', '_search_spiral_step']" -s EXPORTED_RUNTIME_METHODS="['ccall','cwrap','getValue']" -Wno-c++11-narrowing -Wno-writable-strings --source-map-base -I "./" "../src/main.cpp" -o "noita_random.js"

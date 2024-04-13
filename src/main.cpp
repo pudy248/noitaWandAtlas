@@ -1,6 +1,7 @@
 #include <cmath>
 #include <vector>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "spawnableStructs.h"
 #include "noita_random.h"
@@ -220,7 +221,7 @@ bool mat_spiral_step(int x, int y) {
 	bool passed = false;
 	for (Material m : *mats) {
 		if ((int)m == stat_or_mat) 
-		passed = true;
+			passed = true;
 	}
 	if (passed) 
 	{
@@ -229,6 +230,22 @@ bool mat_spiral_step(int x, int y) {
 		search_spiral_result[2] = searched_pixels;
 	}
 	delete mats;
+	return passed;
+}
+
+bool spell_spiral_step(int x, int y) {
+	Wand wand = GetWandWithLevel(world_seed, x, y, 3, false);
+	bool passed = false;
+	for (int i = 0; i < wand.spellCount; i++) {
+		if (wand.spells[i] == stat_or_mat)
+			passed = true;
+	}
+	if (passed) 
+	{
+		search_spiral_result[0] = x;
+		search_spiral_result[1] = y;
+		search_spiral_result[2] = searched_pixels;
+	}
 	return passed;
 }
 
@@ -278,6 +295,10 @@ extern "C"
 
 int search_spiral_step(uint32_t max_iterations)
 {
+    //pthread_t thread_id;
+	//int c=0;
+    //int l=pthread_create(&thread_id,NULL,&test_fn,&c);
+	//return 0;
     //search for a magic pixel in a spiral
     double x_seed = search_spiral_result[0];
     double y_seed = search_spiral_result[1];
@@ -292,11 +313,18 @@ int search_spiral_step(uint32_t max_iterations)
 			y_seed = roundRNGPos(y_seed);
 		}
 
-		if (search_mode == 3) {
+		if (search_mode < 3) {
+			if (wand_spiral_step(x_seed, y_seed)) return true;
+		}
+		else if (search_mode == 3) {
 			if (mat_spiral_step(x_seed, y_seed)) return true;
 		}
+		else if (search_mode == 4) {
+			if (spell_spiral_step(x_seed, y_seed)) return true;
+		}
 		else {
-			if (wand_spiral_step(x_seed, y_seed)) return true;
+			printf("Invalid mode.");
+			return false;
 		}
 
         x_off += x_step * x_step_mult;

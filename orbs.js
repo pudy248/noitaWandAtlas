@@ -1,5 +1,3 @@
-//TODO: check how easy easyzoom integration would be, mouse hover coordinates, click to set position, orb tooltips on map, way to mark found orbs (include separate marking for parallels)
-
 var map_canvas = null;
 var ctx = null;
 var width = null
@@ -63,10 +61,20 @@ function init()
 		if (parseInt(event.target.value) == 3) {
 			document.getElementById("wand_body").style.display = "none";
 			document.getElementById("potion_body").style.display = "block";
+			document.getElementById("spell_body").style.display = "none";
+			document.getElementById("true_knowledge_button").textContent = "Seek Cool Flasks";
+		}
+		else if (parseInt(event.target.value) == 4) {
+			document.getElementById("wand_body").style.display = "none";
+			document.getElementById("potion_body").style.display = "none";
+			document.getElementById("spell_body").style.display = "block";
+			document.getElementById("true_knowledge_button").textContent = "Seek Strong Spells";
 		}
 		else {
 			document.getElementById("wand_body").style.display = "block";
 			document.getElementById("potion_body").style.display = "none";
+			document.getElementById("spell_body").style.display = "none";
+			document.getElementById("true_knowledge_button").textContent = "Seek Big Wands";
 		}
     }
 
@@ -207,20 +215,33 @@ function update_orbs()
 	noac = noac_input.checked
     search_mode = parseInt(search_input.value);
 
-	potion_name = document.getElementById("material").value.toLowerCase()
-	var potion_index = -1
-	for(var i = 0; i < 455; i++) {
-		if(potion_name === MaterialNames[i]) {
-			potion_index = i
-		}
-	}
-
     var output = document.getElementById("output");
     output.innerHTML = "";
+	var thing_index = -1
 
-	if (potion_index == -1) {
-		output.innerHTML = "<p>Invalid material!<\p>"
-		return false
+	if (search_mode == 3) {
+		potion_name = document.getElementById("material").value.toLowerCase()
+		for(var i = 0; i < 462; i++) {
+			if(potion_name === MaterialNames[i]) {
+				thing_index = i
+			}
+		}
+		if (thing_index == -1) {
+			output.innerHTML = "<p>Invalid material!<\p>"
+			return false
+		}
+	}
+	else if (search_mode == 4) {
+		potion_name = document.getElementById("spell").value.toLowerCase()
+		for(var i = 0; i < 422; i++) {
+			if(potion_name === SpellNames[i].toLowerCase()) {
+				thing_index = i
+			}
+		}
+		if (thing_index == -1) {
+			output.innerHTML = "<p>Invalid spell!<\p>"
+			return false
+		}
 	}
 
     var status = document.getElementById("status");
@@ -285,8 +306,8 @@ function update_orbs()
 		ret_string_x = search_x.toString()
 		ret_string_y = search_y.toString()
 
-		if (search_mode == 3) {
-			output.innerHTML += "<p>Flask found at x = " + ret_string_x + ", y = " + ret_string_y + "<\p>";
+		if (search_mode >= 3) {
+			output.innerHTML += "<p>" + (search_mode == 3 ? "Flask" : "Spell") + " found at x = " + ret_string_x + ", y = " + ret_string_y + "<\p>";
 		}
 		else {
 			var search_capacity = getValue(search_spiral_result_ptr+24, "double");
@@ -335,7 +356,7 @@ function update_orbs()
     }
 
     //start the search
-    var search_spiral_result_ptr = search_spiral_start(world_seed, ng, x0, y0, search_mode == 3 ? potion_index : stat, stat_threshold, (less_than ? 1 : 0) + (nonshuffle ? 2 : 0) + (noac ? 4 : 0), search_mode);
+    var search_spiral_result_ptr = search_spiral_start(world_seed, ng, x0, y0, search_mode >= 3 ? thing_index : stat, stat_threshold, (less_than ? 1 : 0) + (nonshuffle ? 2 : 0) + (noac ? 4 : 0), search_mode);
     window.cancelAnimationFrame(animation_request_id);
     if(true) animation_request_id = window.requestAnimationFrame(search_step);
     else status.innerHTML = "";
@@ -363,9 +384,11 @@ SpellNames = [
 	"Hookbolt",
 	"Black hole",
 	"Black hole with death trigger",
+	"White hole",
 	"Giga black hole",
 	"Giga white hole",
 	"Omega black hole",
+	"Omega white hole",
 	"Eldritch portal",
 	"Spitter bolt",
 	"Spitter bolt with timer",
@@ -418,6 +441,7 @@ SpellNames = [
 	"Summon tentacle",
 	"Summon tentacle with timer",
 	"Healing bolt",
+	"Deadly heal",
 	"Spiral shot",
 	"Magic guard",
 	"Big magic guard",
@@ -429,7 +453,7 @@ SpellNames = [
 	"Slimeball",
 	"Path of dark flame",
 	"Summon missile",
-	"??? (Bullet)",
+	"???",
 	"Summon rock spirit",
 	"Dynamite",
 	"Glitter bomb",
@@ -498,9 +522,12 @@ SpellNames = [
 	"Touch of water",
 	"Touch of oil",
 	"Touch of spirits",
+	"Touch of gold?",
+	"Touch of grass",
 	"Touch of blood",
 	"Touch of smoke",
 	"Destruction",
+	"Muodonmuutos",
 	"Double spell",
 	"Triple spell",
 	"Quadruple spell",
@@ -585,6 +612,7 @@ SpellNames = [
 	"Accelerating shot",
 	"Decelerating shot",
 	"Explosive projectile",
+	"Clusterbolt",
 	"Water to poison",
 	"Blood to acid",
 	"Lava to blood",
@@ -623,6 +651,7 @@ SpellNames = [
 	"Summon swamp",
 	"Sea of acid",
 	"Sea of flammable gas",
+	"Sea of mimicium",
 	"Rain cloud",
 	"Oil cloud",
 	"Blood cloud",
@@ -758,6 +787,7 @@ SpellNames = [
 	"Rainbow glimmer",
 	"Invisible spell",
 	"Rainbow trail",
+	"Cessation",
 ]
 
 MaterialNames = [
@@ -826,6 +856,7 @@ MaterialNames = [
 	"item_box2d",
 	"rock_box2d_nohit_hard",
 	"rock_box2d_nohit",
+	"rock_box2d_nohit_heavy",
 	"poop_box2d_hard",
 	"rock_box2d_hard",
 	"templebrick_box2d_edgetiles",
@@ -957,6 +988,8 @@ MaterialNames = [
 	"gunpowder_unstable_boss_limbs",
 	"plastic_red",
 	"grass",
+	"grass_holy",
+	"grass_darker",
 	"grass_ice",
 	"grass_dry",
 	"fungi",
@@ -964,6 +997,7 @@ MaterialNames = [
 	"moss",
 	"plant_material",
 	"plant_material_red",
+	"plant_material_dark",
 	"ceiling_plant_material",
 	"mushroom_seed",
 	"plant_seed",
@@ -1085,6 +1119,9 @@ MaterialNames = [
 	"water_swamp",
 	"oil",
 	"alcohol",
+	"beer",
+	"milk",
+	"molut",
 	"sima",
 	"juhannussima",
 	"magic_liquid",
@@ -1168,6 +1205,7 @@ MaterialNames = [
 	"liquid_fire_weak",
 	"liquid_fire",
 	"just_death",
+	"mimic_liquid",
 	"void_liquid",
 	"water_salt",
 	"water_fading",

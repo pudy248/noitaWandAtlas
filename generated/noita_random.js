@@ -1558,6 +1558,7 @@ var ASM_CONSTS = {
         return ccall(ident, returnType, argTypes, arguments, opts);
       }
     }
+
 var ASSERTIONS = true;
 
 function checkIncomingModuleAPI() {
@@ -1640,6 +1641,7 @@ var dynCall_jiji = Module["dynCall_jiji"] = createExportWrapper("dynCall_jiji");
 
 Module["ccall"] = ccall;
 Module["cwrap"] = cwrap;
+Module["getValue"] = getValue;
 var unexportedRuntimeSymbols = [
   'run',
   'UTF8ArrayToString',
@@ -1756,7 +1758,6 @@ var unexportedRuntimeSymbols = [
   'reSign',
   'formatString',
   'setValue',
-  'getValue',
   'PATH',
   'PATH_FS',
   'intArrayFromString',
