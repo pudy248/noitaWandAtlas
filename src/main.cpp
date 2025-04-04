@@ -187,6 +187,9 @@ bool wand_spiral_step(int x, int y) {
 		case 7:
 			passed = wand.speed >= stat_threshold;
 			break;
+		case 8:
+			passed = (wandSprites[wand.sprite].tip_x - wandSprites[wand.sprite].grip_x) >= stat_threshold;
+			break;
 		default:
 			passed = wand.capacity >= stat_threshold;
 			break;
@@ -308,7 +311,7 @@ int search_spiral_step(uint32_t max_iterations)
 		searched_pixels++;
         x_seed = floor(x_center+x_off);
         y_seed = floor(y_center+y_off);
-		if(search_mode == 0) {
+		if(search_mode == 0 || search_mode == 3) {
 			x_seed = roundRNGPos(x_seed);
 			y_seed = roundRNGPos(y_seed);
 		}

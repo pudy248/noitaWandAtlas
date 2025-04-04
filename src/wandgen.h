@@ -9,7 +9,7 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-void GetBestSprite(NollaPRNG* rnd, Wand w)
+void GetBestSprite(NollaPRNG* rnd, Wand& w)
 {
 	WandSpaceDat gunInWandSpace = {};
 	gunInWandSpace.fire_rate_wait = fminf(fmaxf(((w.delay + 5) / 7.0f) - 1, 0), 4);
@@ -33,8 +33,10 @@ void GetBestSprite(NollaPRNG* rnd, Wand w)
 		if (wandSprites[i].spread_degrees == gunInWandSpace.spread_degrees)
 		if (wandSprites[i].reload_time == gunInWandSpace.reload_time)
 		if (wandSprites[i].shuffle_deck_when_empty == gunInWandSpace.shuffle_deck_when_empty)
-		if (rnd->Random(0, 100) < 33)
+		if (rnd->Random(0, 100) < 33) {
+			w.sprite = i;
 			break;
+		}
 	}
 	return;
 }

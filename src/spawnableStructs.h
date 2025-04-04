@@ -18,6 +18,7 @@ struct Wand
 	float prob_draw_many;
 	bool force_unshuffle;
 	bool is_rare;
+	int sprite;
 
 	float capacity;
 	int multicast;
