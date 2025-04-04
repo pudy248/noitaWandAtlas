@@ -2,12 +2,6 @@
 
 #include "enums.h"
 
-struct SpellData
-{
-	Spell s;
-	ActionType type;
-	double spawn_probabilities[11];
-};
 struct SpellProb
 {
 	double p;
@@ -24,6 +18,7 @@ struct Wand
 	float prob_draw_many;
 	bool force_unshuffle;
 	bool is_rare;
+	int sprite;
 
 	float capacity;
 	int multicast;

@@ -472,9 +472,6 @@ function assert(condition, text) {
 
 // We used to include malloc/free by default in the past. Show a helpful error in
 // builds with assertions.
-function _malloc() {
-  abort("malloc() called but not included in the build - add '_malloc' to EXPORTED_FUNCTIONS");
-}
 function _free() {
   // Show a helpful error since we used to include free by default in the past.
   abort("free() called but not included in the build - add '_free' to EXPORTED_FUNCTIONS");
@@ -1295,8 +1292,188 @@ var ASM_CONSTS = {
       }
     }
 
+  function ___cxa_allocate_exception(size) {
+      // Thrown object is prepended by exception metadata block
+      return _malloc(size + 24) + 24;
+    }
+
+  /** @constructor */
+  function ExceptionInfo(excPtr) {
+      this.excPtr = excPtr;
+      this.ptr = excPtr - 24;
+  
+      this.set_type = function(type) {
+        HEAPU32[(((this.ptr)+(4))>>2)] = type;
+      };
+  
+      this.get_type = function() {
+        return HEAPU32[(((this.ptr)+(4))>>2)];
+      };
+  
+      this.set_destructor = function(destructor) {
+        HEAPU32[(((this.ptr)+(8))>>2)] = destructor;
+      };
+  
+      this.get_destructor = function() {
+        return HEAPU32[(((this.ptr)+(8))>>2)];
+      };
+  
+      this.set_refcount = function(refcount) {
+        HEAP32[((this.ptr)>>2)] = refcount;
+      };
+  
+      this.set_caught = function (caught) {
+        caught = caught ? 1 : 0;
+        HEAP8[(((this.ptr)+(12))>>0)] = caught;
+      };
+  
+      this.get_caught = function () {
+        return HEAP8[(((this.ptr)+(12))>>0)] != 0;
+      };
+  
+      this.set_rethrown = function (rethrown) {
+        rethrown = rethrown ? 1 : 0;
+        HEAP8[(((this.ptr)+(13))>>0)] = rethrown;
+      };
+  
+      this.get_rethrown = function () {
+        return HEAP8[(((this.ptr)+(13))>>0)] != 0;
+      };
+  
+      // Initialize native structure fields. Should be called once after allocated.
+      this.init = function(type, destructor) {
+        this.set_adjusted_ptr(0);
+        this.set_type(type);
+        this.set_destructor(destructor);
+        this.set_refcount(0);
+        this.set_caught(false);
+        this.set_rethrown(false);
+      }
+  
+      this.add_ref = function() {
+        var value = HEAP32[((this.ptr)>>2)];
+        HEAP32[((this.ptr)>>2)] = value + 1;
+      };
+  
+      // Returns true if last reference released.
+      this.release_ref = function() {
+        var prev = HEAP32[((this.ptr)>>2)];
+        HEAP32[((this.ptr)>>2)] = prev - 1;
+        assert(prev > 0);
+        return prev === 1;
+      };
+  
+      this.set_adjusted_ptr = function(adjustedPtr) {
+        HEAPU32[(((this.ptr)+(16))>>2)] = adjustedPtr;
+      };
+  
+      this.get_adjusted_ptr = function() {
+        return HEAPU32[(((this.ptr)+(16))>>2)];
+      };
+  
+      // Get pointer which is expected to be received by catch clause in C++ code. It may be adjusted
+      // when the pointer is casted to some of the exception object base classes (e.g. when virtual
+      // inheritance is used). When a pointer is thrown this method should return the thrown pointer
+      // itself.
+      this.get_exception_ptr = function() {
+        // Work around a fastcomp bug, this code is still included for some reason in a build without
+        // exceptions support.
+        var isPointer = ___cxa_is_pointer_type(this.get_type());
+        if (isPointer) {
+          return HEAPU32[((this.excPtr)>>2)];
+        }
+        var adjusted = this.get_adjusted_ptr();
+        if (adjusted !== 0) return adjusted;
+        return this.excPtr;
+      };
+    }
+  
+  var exceptionLast = 0;
+  
+  var uncaughtExceptionCount = 0;
+  function ___cxa_throw(ptr, type, destructor) {
+      var info = new ExceptionInfo(ptr);
+      // Initialize ExceptionInfo content after it was allocated in __cxa_allocate_exception.
+      info.init(type, destructor);
+      exceptionLast = ptr;
+      uncaughtExceptionCount++;
+      throw ptr + " - Exception catching is disabled, this exception cannot be caught. Compile with -sNO_DISABLE_EXCEPTION_CATCHING or -sEXCEPTION_CATCHING_ALLOWED=[..] to catch.";
+    }
+
+  function _abort() {
+      abort('native code called abort()');
+    }
+
   function _emscripten_memcpy_big(dest, src, num) {
       HEAPU8.copyWithin(dest, src, src + num);
+    }
+
+  function getHeapMax() {
+      return HEAPU8.length;
+    }
+  
+  function abortOnCannotGrowMemory(requestedSize) {
+      abort('Cannot enlarge memory arrays to size ' + requestedSize + ' bytes (OOM). Either (1) compile with -sINITIAL_MEMORY=X with X higher than the current value ' + HEAP8.length + ', (2) compile with -sALLOW_MEMORY_GROWTH which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with -sABORTING_MALLOC=0');
+    }
+  function _emscripten_resize_heap(requestedSize) {
+      var oldSize = HEAPU8.length;
+      requestedSize = requestedSize >>> 0;
+      abortOnCannotGrowMemory(requestedSize);
+    }
+
+  var SYSCALLS = {varargs:undefined,get:function() {
+        assert(SYSCALLS.varargs != undefined);
+        SYSCALLS.varargs += 4;
+        var ret = HEAP32[(((SYSCALLS.varargs)-(4))>>2)];
+        return ret;
+      },getStr:function(ptr) {
+        var ret = UTF8ToString(ptr);
+        return ret;
+      }};
+  function _fd_close(fd) {
+      abort('fd_close called without SYSCALLS_REQUIRE_FILESYSTEM');
+    }
+
+  function convertI32PairToI53Checked(lo, hi) {
+      assert(lo == (lo >>> 0) || lo == (lo|0)); // lo should either be a i32 or a u32
+      assert(hi === (hi|0));                    // hi should be a i32
+      return ((hi + 0x200000) >>> 0 < 0x400001 - !!lo) ? (lo >>> 0) + hi * 4294967296 : NaN;
+    }
+  function _fd_seek(fd, offset_low, offset_high, whence, newOffset) {
+      return 70;
+    }
+
+  var printCharBuffers = [null,[],[]];
+  function printChar(stream, curr) {
+      var buffer = printCharBuffers[stream];
+      assert(buffer);
+      if (curr === 0 || curr === 10) {
+        (stream === 1 ? out : err)(UTF8ArrayToString(buffer, 0));
+        buffer.length = 0;
+      } else {
+        buffer.push(curr);
+      }
+    }
+  function flush_NO_FILESYSTEM() {
+      // flush anything remaining in the buffers during shutdown
+      _fflush(0);
+      if (printCharBuffers[1].length) printChar(1, 10);
+      if (printCharBuffers[2].length) printChar(2, 10);
+    }
+  function _fd_write(fd, iov, iovcnt, pnum) {
+      // hack to support printf in SYSCALLS_REQUIRE_FILESYSTEM=0
+      var num = 0;
+      for (var i = 0; i < iovcnt; i++) {
+        var ptr = HEAPU32[((iov)>>2)];
+        var len = HEAPU32[(((iov)+(4))>>2)];
+        iov += 8;
+        for (var j = 0; j < len; j++) {
+          printChar(fd, HEAPU8[ptr+j]);
+        }
+        num += len;
+      }
+      HEAPU32[((pnum)>>2)] = num;
+      return 0;
     }
 
   function getCFunc(ident) {
@@ -1381,13 +1558,21 @@ var ASM_CONSTS = {
         return ccall(ident, returnType, argTypes, arguments, opts);
       }
     }
+
 var ASSERTIONS = true;
 
 function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var asmLibraryArg = {
-  "emscripten_memcpy_big": _emscripten_memcpy_big
+  "__cxa_allocate_exception": ___cxa_allocate_exception,
+  "__cxa_throw": ___cxa_throw,
+  "abort": _abort,
+  "emscripten_memcpy_big": _emscripten_memcpy_big,
+  "emscripten_resize_heap": _emscripten_resize_heap,
+  "fd_close": _fd_close,
+  "fd_seek": _fd_seek,
+  "fd_write": _fd_write
 };
 var asm = createWasm();
 /** @type {function(...*):?} */
@@ -1404,6 +1589,9 @@ var ___errno_location = Module["___errno_location"] = createExportWrapper("__err
 
 /** @type {function(...*):?} */
 var _fflush = Module["_fflush"] = createExportWrapper("fflush");
+
+/** @type {function(...*):?} */
+var _malloc = Module["_malloc"] = createExportWrapper("malloc");
 
 /** @type {function(...*):?} */
 var _emscripten_stack_init = Module["_emscripten_stack_init"] = function() {
@@ -1439,6 +1627,12 @@ var _emscripten_stack_get_current = Module["_emscripten_stack_get_current"] = fu
   return (_emscripten_stack_get_current = Module["_emscripten_stack_get_current"] = Module["asm"]["emscripten_stack_get_current"]).apply(null, arguments);
 };
 
+/** @type {function(...*):?} */
+var ___cxa_is_pointer_type = Module["___cxa_is_pointer_type"] = createExportWrapper("__cxa_is_pointer_type");
+
+/** @type {function(...*):?} */
+var dynCall_jiji = Module["dynCall_jiji"] = createExportWrapper("dynCall_jiji");
+
 
 
 
@@ -1447,6 +1641,7 @@ var _emscripten_stack_get_current = Module["_emscripten_stack_get_current"] = fu
 
 Module["ccall"] = ccall;
 Module["cwrap"] = cwrap;
+Module["getValue"] = getValue;
 var unexportedRuntimeSymbols = [
   'run',
   'UTF8ArrayToString',
@@ -1563,7 +1758,6 @@ var unexportedRuntimeSymbols = [
   'reSign',
   'formatString',
   'setValue',
-  'getValue',
   'PATH',
   'PATH_FS',
   'intArrayFromString',
@@ -1695,8 +1889,6 @@ var missingLibrarySymbols = [
   'zeroMemory',
   'stringToNewUTF8',
   'exitJS',
-  'getHeapMax',
-  'abortOnCannotGrowMemory',
   'emscripten_realloc_buffer',
   'setErrNo',
   'inetPton4',
@@ -1738,7 +1930,6 @@ var missingLibrarySymbols = [
   'readI53FromI64',
   'readI53FromU64',
   'convertI32PairToI53',
-  'convertI32PairToI53Checked',
   'convertU32PairToI53',
   'uleb128Encode',
   'sigToWasmTypes',
@@ -1817,12 +2008,10 @@ var missingLibrarySymbols = [
   'stackTrace',
   'getEnvStrings',
   'checkWasiClock',
-  'flush_NO_FILESYSTEM',
   'createDyncallWrapper',
   'setImmediateWrapped',
   'clearImmediateWrapped',
   'polyfillSetImmediate',
-  'ExceptionInfo',
   'exception_addRef',
   'exception_decRef',
   'setMainLoop',
@@ -1936,7 +2125,7 @@ function checkUnflushedContent() {
     has = true;
   }
   try { // it doesn't matter if it fails
-    _fflush(0);
+    flush_NO_FILESYSTEM();
   } catch(e) {}
   out = oldOut;
   err = oldErr;

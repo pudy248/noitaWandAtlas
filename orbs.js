@@ -1,5 +1,3 @@
-//TODO: check how easy easyzoom integration would be, mouse hover coordinates, click to set position, orb tooltips on map, way to mark found orbs (include separate marking for parallels)
-
 var map_canvas = null;
 var ctx = null;
 var width = null
@@ -8,6 +6,7 @@ var scale = 0
 
 search_spiral_start = Module.cwrap('search_spiral_start', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'])
 search_spiral_step = Module.cwrap('search_spiral_step', 'number', ['number'])
+
 
 function refresh_canvas_size()
 {
@@ -52,17 +51,35 @@ function init()
         }
     }
 
-    function change_tiny(event, event2) {
+    function change_searchmode(event, event2) {
         if(parseInt(event.target.value) == 2) {
             var x_input = document.getElementById("x");
             var y_input = document.getElementById("y");
             x_input.value = "14941"
             y_input.value = "18654"
         }
+		if (parseInt(event.target.value) == 3) {
+			document.getElementById("wand_body").style.display = "none";
+			document.getElementById("potion_body").style.display = "block";
+			document.getElementById("spell_body").style.display = "none";
+			document.getElementById("true_knowledge_button").textContent = "Seek Cool Flasks";
+		}
+		else if (parseInt(event.target.value) == 4) {
+			document.getElementById("wand_body").style.display = "none";
+			document.getElementById("potion_body").style.display = "none";
+			document.getElementById("spell_body").style.display = "block";
+			document.getElementById("true_knowledge_button").textContent = "Seek Strong Spells";
+		}
+		else {
+			document.getElementById("wand_body").style.display = "block";
+			document.getElementById("potion_body").style.display = "none";
+			document.getElementById("spell_body").style.display = "none";
+			document.getElementById("true_knowledge_button").textContent = "Seek Big Wands";
+		}
     }
 
     var search_input = document.getElementById("search_mode");
-    search_input.onchange = change_tiny
+    search_input.onchange = change_searchmode
 
     map_canvas = document.getElementById('map_canvas');
     refresh_canvas_size()
@@ -174,13 +191,6 @@ function redraw_map()
 
 function update_orbs()
 {
-    var output = document.getElementById("output");
-    output.innerHTML = "";
-    var status = document.getElementById("status");
-    status.innerHTML = "Searching...";
-    map_title = document.getElementById("map_title")
-    map_title.innerHTML = "";
-
     var seed_input = document.getElementById("seed");
     var ng_input = document.getElementById("ng");
     var x_input = document.getElementById("x");
@@ -204,6 +214,40 @@ function update_orbs()
     nonshuffle = ns_input.checked
 	noac = noac_input.checked
     search_mode = parseInt(search_input.value);
+
+    var output = document.getElementById("output");
+    output.innerHTML = "";
+	var thing_index = -1
+
+	if (search_mode == 3) {
+		potion_name = document.getElementById("material").value.toLowerCase()
+		for(var i = 0; i < 462; i++) {
+			if(potion_name === MaterialNames[i]) {
+				thing_index = i
+			}
+		}
+		if (thing_index == -1) {
+			output.innerHTML = "<p>Invalid material!<\p>"
+			return false
+		}
+	}
+	else if (search_mode == 4) {
+		potion_name = document.getElementById("spell").value.toLowerCase()
+		for(var i = 0; i < 422; i++) {
+			if(potion_name === SpellNames[i].toLowerCase()) {
+				thing_index = i
+			}
+		}
+		if (thing_index == -1) {
+			output.innerHTML = "<p>Invalid spell!<\p>"
+			return false
+		}
+	}
+
+    var status = document.getElementById("status");
+    status.innerHTML = "Searching...";
+    map_title = document.getElementById("map_title")
+    map_title.innerHTML = "";
 
     if(ng > 0)
     {
@@ -258,55 +302,61 @@ function update_orbs()
         search_x = getValue(search_spiral_result_ptr, "double");
         search_y = getValue(search_spiral_result_ptr+8, "double");
         search_iters = getValue(search_spiral_result_ptr+16, "double");
-        var search_capacity = getValue(search_spiral_result_ptr+24, "double");
-        var search_multicast = getValue(search_spiral_result_ptr+32, "double");
-        var search_delay = getValue(search_spiral_result_ptr+40, "double");
-        var search_reload = getValue(search_spiral_result_ptr+48, "double");
-        var search_mana = getValue(search_spiral_result_ptr+56, "double");
-        var search_regen = getValue(search_spiral_result_ptr+64, "double");
-        var search_spread = getValue(search_spiral_result_ptr+72, "double");
-        var search_speead = getValue(search_spiral_result_ptr+80, "double");
-        var search_shuffle = getValue(search_spiral_result_ptr+88, "double");
-        var search_ac = getValue(search_spiral_result_ptr+96, "double");
 
-        ret_string_x = search_x.toString()
-        ret_string_y = search_y.toString()
+		ret_string_x = search_x.toString()
+		ret_string_y = search_y.toString()
 
-        //make ranges for rounding imprecision
-        //this continues to be the worst way to implement these things
-        if(search_mode == 0 && Math.abs(search_x) > 1000000) {
-            var plusminus = 5
-            if(Math.abs(search_x) > 10000000) plusminus = 50
-            ret_string_x = (search_x).toString() + " \u00B1 " + (plusminus).toString()
-        }
+		if (search_mode >= 3) {
+			output.innerHTML += "<p>" + (search_mode == 3 ? "Flask" : "Spell") + " found at x = " + ret_string_x + ", y = " + ret_string_y + "<\p>";
+		}
+		else {
+			var search_capacity = getValue(search_spiral_result_ptr+24, "double");
+			var search_multicast = getValue(search_spiral_result_ptr+32, "double");
+			var search_delay = getValue(search_spiral_result_ptr+40, "double");
+			var search_reload = getValue(search_spiral_result_ptr+48, "double");
+			var search_mana = getValue(search_spiral_result_ptr+56, "double");
+			var search_regen = getValue(search_spiral_result_ptr+64, "double");
+			var search_spread = getValue(search_spiral_result_ptr+72, "double");
+			var search_speead = getValue(search_spiral_result_ptr+80, "double");
+			var search_shuffle = getValue(search_spiral_result_ptr+88, "double");
+			var search_ac = getValue(search_spiral_result_ptr+96, "double");
 
-        if(search_mode == 0 && Math.abs(search_y) > 1000000) {
-            var plusminus = 5
-            if(Math.abs(search_y) > 10000000) plusminus = 50
-            ret_string_y = (search_y).toString() + " \u00B1 " + (plusminus).toString()
-        }
+			//make ranges for rounding imprecision
+			//this continues to be the worst way to implement these things
+			if(search_mode == 0 && Math.abs(search_x) > 1000000) {
+				var plusminus = 5
+				if(Math.abs(search_x) > 10000000) plusminus = 50
+				ret_string_x = (search_x).toString() + " \u00B1 " + (plusminus).toString()
+			}
 
-        search_color = "#FF5E26"
-        search_color2 = "#FFE385"
-        redraw_map();
-        output.innerHTML += "<p>Wand found at x = " + ret_string_x + ", y = " + ret_string_y + "<\p>";
-        output.innerHTML += "<p>Capacity: " + Math.floor(search_capacity) + "<\p>";
-        output.innerHTML += "<p>Multicast: " + search_multicast + "<\p>";
-        output.innerHTML += "<p>Cast Delay: " + (search_delay / 60).toFixed(2) + " sec<\p>";
-        output.innerHTML += "<p>Reload: " + (search_reload / 60).toFixed(2) + " sec<\p>";
-        output.innerHTML += "<p>Max Mana: " + search_mana + "<\p>";
-        output.innerHTML += "<p>Mana Regen: " + search_regen + "<\p>";
-        output.innerHTML += "<p>Spread: " + search_spread + " deg<\p>";
-        output.innerHTML += "<p>Speed: " + search_speead.toFixed(3) + "x<\p>";
-        output.innerHTML += "<p>" + (search_shuffle == 0 ? "Nonshuffle" : "Shuffle") + "<\p>";
-        if(search_ac > 0) {
-            output.innerHTML += "<p>Always Cast: " + SpellNames[search_ac] + "<\p>";
-        }
+			if(search_mode == 0 && Math.abs(search_y) > 1000000) {
+				var plusminus = 5
+				if(Math.abs(search_y) > 10000000) plusminus = 50
+				ret_string_y = (search_y).toString() + " \u00B1 " + (plusminus).toString()
+			}
+
+			search_color = "#FF5E26"
+			search_color2 = "#FFE385"
+			redraw_map();
+			output.innerHTML += "<p>Wand found at x = " + ret_string_x + ", y = " + ret_string_y + "<\p>";
+			output.innerHTML += "<p>Capacity: " + Math.floor(search_capacity) + "<\p>";
+			output.innerHTML += "<p>Multicast: " + search_multicast + "<\p>";
+			output.innerHTML += "<p>Cast Delay: " + (search_delay / 60).toFixed(2) + " sec<\p>";
+			output.innerHTML += "<p>Reload: " + (search_reload / 60).toFixed(2) + " sec<\p>";
+			output.innerHTML += "<p>Max Mana: " + search_mana + "<\p>";
+			output.innerHTML += "<p>Mana Regen: " + search_regen + "<\p>";
+			output.innerHTML += "<p>Spread: " + search_spread + " deg<\p>";
+			output.innerHTML += "<p>Speed: " + search_speead.toFixed(3) + "x<\p>";
+			output.innerHTML += "<p>" + (search_shuffle == 0 ? "Nonshuffle" : "Shuffle") + "<\p>";
+			if(search_ac > 0) {
+				output.innerHTML += "<p>Always Cast: " + SpellNames[search_ac] + "<\p>";
+			}
+		}
         status.innerHTML = "";
     }
 
     //start the search
-    var search_spiral_result_ptr = search_spiral_start(world_seed, ng, x0, y0, stat, stat_threshold, (less_than ? 1 : 0) + (nonshuffle ? 2 : 0) + (noac ? 4 : 0), search_mode);
+    var search_spiral_result_ptr = search_spiral_start(world_seed, ng, x0, y0, search_mode >= 3 ? thing_index : stat, stat_threshold, (less_than ? 1 : 0) + (nonshuffle ? 2 : 0) + (noac ? 4 : 0), search_mode);
     window.cancelAnimationFrame(animation_request_id);
     if(true) animation_request_id = window.requestAnimationFrame(search_step);
     else status.innerHTML = "";
@@ -334,9 +384,11 @@ SpellNames = [
 	"Hookbolt",
 	"Black hole",
 	"Black hole with death trigger",
+	"White hole",
 	"Giga black hole",
 	"Giga white hole",
 	"Omega black hole",
+	"Omega white hole",
 	"Eldritch portal",
 	"Spitter bolt",
 	"Spitter bolt with timer",
@@ -389,6 +441,7 @@ SpellNames = [
 	"Summon tentacle",
 	"Summon tentacle with timer",
 	"Healing bolt",
+	"Deadly heal",
 	"Spiral shot",
 	"Magic guard",
 	"Big magic guard",
@@ -400,7 +453,7 @@ SpellNames = [
 	"Slimeball",
 	"Path of dark flame",
 	"Summon missile",
-	"??? (Bullet)",
+	"???",
 	"Summon rock spirit",
 	"Dynamite",
 	"Glitter bomb",
@@ -469,9 +522,12 @@ SpellNames = [
 	"Touch of water",
 	"Touch of oil",
 	"Touch of spirits",
+	"Touch of gold?",
+	"Touch of grass",
 	"Touch of blood",
 	"Touch of smoke",
 	"Destruction",
+	"Muodonmuutos",
 	"Double spell",
 	"Triple spell",
 	"Quadruple spell",
@@ -556,6 +612,7 @@ SpellNames = [
 	"Accelerating shot",
 	"Decelerating shot",
 	"Explosive projectile",
+	"Clusterbolt",
 	"Water to poison",
 	"Blood to acid",
 	"Lava to blood",
@@ -594,6 +651,7 @@ SpellNames = [
 	"Summon swamp",
 	"Sea of acid",
 	"Sea of flammable gas",
+	"Sea of mimicium",
 	"Rain cloud",
 	"Oil cloud",
 	"Blood cloud",
@@ -729,4 +787,471 @@ SpellNames = [
 	"Rainbow glimmer",
 	"Invisible spell",
 	"Rainbow trail",
+	"Cessation",
+]
+
+MaterialNames = [
+	"material_none",
+	"waterrock",
+	"ice_glass",
+	"ice_glass_b2",
+	"glass_brittle",
+	"wood_player_b2",
+	"wood",
+	"wax_b2",
+	"fuse",
+	"wood_loose",
+	"rock_loose",
+	"ice_ceiling",
+	"brick",
+	"concrete_collapsed",
+	"tnt",
+	"tnt_static",
+	"meteorite",
+	"sulphur_box2d",
+	"meteorite_test",
+	"meteorite_green",
+	"steel",
+	"steel_rust",
+	"metal_rust_rust",
+	"metal_rust_barrel_rust",
+	"plastic",
+	"aluminium",
+	"rock_static_box2d",
+	"rock_box2d",
+	"crystal",
+	"magic_crystal",
+	"crystal_magic",
+	"aluminium_oxide",
+	"meat",
+	"meat_slime",
+	"physics_throw_material_part2",
+	"ice_melting_perf_killer",
+	"ice_b2",
+	"glass_liquidcave",
+	"glass",
+	"neon_tube_purple",
+	"snow_b2",
+	"neon_tube_blood_red",
+	"neon_tube_cyan",
+	"meat_burned",
+	"meat_done",
+	"meat_hot",
+	"meat_warm",
+	"meat_fruit",
+	"crystal_solid",
+	"crystal_purple",
+	"gold_b2",
+	"magic_crystal_green",
+	"bone_box2d",
+	"metal_rust_barrel",
+	"metal_rust",
+	"metal_wire_nohit",
+	"metal_chain_nohit",
+	"metal_nohit",
+	"glass_box2d",
+	"potion_glass_box2d",
+	"gem_box2d",
+	"item_box2d_glass",
+	"item_box2d",
+	"rock_box2d_nohit_hard",
+	"rock_box2d_nohit",
+	"rock_box2d_nohit_heavy",
+	"poop_box2d_hard",
+	"rock_box2d_hard",
+	"templebrick_box2d_edgetiles",
+	"metal_hard",
+	"metal",
+	"metal_prop_loose",
+	"metal_prop_low_restitution",
+	"metal_prop",
+	"aluminium_robot",
+	"plastic_prop",
+	"meteorite_crackable",
+	"wood_prop_durable",
+	"cloth_box2d",
+	"wood_prop_noplayerhit",
+	"wood_prop",
+	"fungus_loose_trippy",
+	"fungus_loose_green",
+	"fungus_loose",
+	"grass_loose",
+	"cactus",
+	"wood_wall",
+	"wood_trailer",
+	"templebrick_box2d",
+	"fuse_holy",
+	"fuse_tnt",
+	"fuse_bright",
+	"wood_player_b2_vertical",
+	"meat_confusion",
+	"meat_polymorph_protection",
+	"meat_polymorph",
+	"meat_fast",
+	"meat_teleport",
+	"meat_slime_cursed",
+	"meat_cursed",
+	"meat_trippy",
+	"meat_helpless",
+	"meat_worm",
+	"meat_slime_orange",
+	"meat_slime_green",
+	"ice_slime_glass",
+	"ice_blood_glass",
+	"ice_poison_glass",
+	"ice_radioactive_glass",
+	"ice_cold_glass",
+	"ice_acid_glass",
+	"tube_physics",
+	"rock_eroding",
+	"meat_pumpkin",
+	"meat_frog",
+	"meat_cursed_dry",
+	"nest_box2d",
+	"nest_firebug_box2d",
+	"cocoon_box2d",
+	"item_box2d_meat",
+	"gem_box2d_yellow_sun",
+	"gem_box2d_red_float",
+	"gem_box2d_yellow_sun_gravity",
+	"gem_box2d_darksun",
+	"gem_box2d_pink",
+	"gem_box2d_red",
+	"gem_box2d_turquoise",
+	"gem_box2d_opal",
+	"gem_box2d_white",
+	"gem_box2d_green",
+	"gem_box2d_orange",
+	"gold_box2d",
+	"bloodgold_box2d",
+	"sand_static",
+	"nest_static",
+	"bluefungi_static",
+	"rock_static",
+	"lavarock_static",
+	"static_magic_material",
+	"meteorite_static",
+	"templerock_static",
+	"steel_static",
+	"rock_static_glow",
+	"snow_static",
+	"ice_static",
+	"ice_acid_static",
+	"ice_cold_static",
+	"ice_radioactive_static",
+	"ice_poison_static",
+	"ice_meteor_static",
+	"tubematerial",
+	"glass_static",
+	"snowrock_static",
+	"concrete_static",
+	"wood_static",
+	"cheese_static",
+	"mud",
+	"concrete_sand",
+	"sand",
+	"bone",
+	"soil",
+	"sandstone",
+	"fungisoil",
+	"honey",
+	"glue",
+	"explosion_dirt",
+	"vine",
+	"root",
+	"snow",
+	"snow_sticky",
+	"rotten_meat",
+	"meat_slime_sand",
+	"rotten_meat_radioactive",
+	"ice",
+	"sand_herb",
+	"wax",
+	"gold",
+	"silver",
+	"copper",
+	"brass",
+	"diamond",
+	"coal",
+	"sulphur",
+	"salt",
+	"sodium_unstable",
+	"gunpowder",
+	"gunpowder_explosive",
+	"gunpowder_tnt",
+	"gunpowder_unstable",
+	"gunpowder_unstable_big",
+	"monster_powder_test",
+	"rat_powder",
+	"fungus_powder",
+	"orb_powder",
+	"gunpowder_unstable_boss_limbs",
+	"plastic_red",
+	"grass",
+	"grass_holy",
+	"grass_darker",
+	"grass_ice",
+	"grass_dry",
+	"fungi",
+	"spore",
+	"moss",
+	"plant_material",
+	"plant_material_red",
+	"plant_material_dark",
+	"ceiling_plant_material",
+	"mushroom_seed",
+	"plant_seed",
+	"mushroom",
+	"mushroom_giant_red",
+	"mushroom_giant_blue",
+	"glowshroom",
+	"bush_seed",
+	"wood_player",
+	"trailer_text",
+	"poo",
+	"mammi",
+	"glass_broken",
+	"blood_thick",
+	"sand_static_rainforest",
+	"sand_static_rainforest_dark",
+	"bone_static",
+	"rust_static",
+	"sand_static_bright",
+	"meat_static",
+	"moss_rust",
+	"fungi_creeping_secret",
+	"fungi_creeping",
+	"grass_dark",
+	"sand_static_red",
+	"fungi_green",
+	"shock_powder",
+	"fungus_powder_bad",
+	"burning_powder",
+	"purifying_powder",
+	"sodium",
+	"metal_sand",
+	"steel_sand",
+	"gold_radioactive",
+	"rock_static_intro",
+	"rock_static_trip_secret",
+	"endslime_blood",
+	"endslime",
+	"rock_static_trip_secret2",
+	"sandstone_surface",
+	"soil_dark",
+	"soil_dead",
+	"soil_lush_dark",
+	"soil_lush",
+	"sand_petrify",
+	"lavasand",
+	"sand_surface",
+	"sand_blue",
+	"plasma_fading_pink",
+	"plasma_fading_green",
+	"corruption_static",
+	"wood_static_gas",
+	"wood_static_vertical",
+	"gold_static_dark",
+	"gold_static_radioactive",
+	"gold_static",
+	"creepy_liquid_emitter",
+	"wood_burns_forever",
+	"root_growth",
+	"wood_static_wet",
+	"ice_slime_static",
+	"ice_blood_static",
+	"rock_static_intro_breakable",
+	"steel_static_unmeltable",
+	"steel_static_strong",
+	"steelpipe_static",
+	"steelsmoke_static",
+	"steelmoss_slanted",
+	"steelfrost_static",
+	"rock_static_cursed",
+	"rock_static_purple",
+	"steelmoss_static",
+	"rock_hard",
+	"templebrick_moss_static",
+	"templebrick_red",
+	"glowstone_potion",
+	"glowstone_altar_hdr",
+	"glowstone_altar",
+	"glowstone",
+	"templebrick_static_ruined",
+	"templebrick_diamond_static",
+	"templebrick_golden_static",
+	"wizardstone",
+	"templebrickdark_static",
+	"rock_static_fungal",
+	"wood_tree",
+	"rock_static_noedge",
+	"rock_hard_border",
+	"templerock_soft",
+	"templebrick_noedge_static",
+	"templebrick_static_soft",
+	"templebrick_static_broken",
+	"templebrick_static",
+	"rock_static_wet",
+	"rock_magic_gate",
+	"rock_static_poison",
+	"rock_static_cursed_green",
+	"rock_static_radioactive",
+	"rock_static_grey",
+	"coal_static",
+	"rock_vault",
+	"rock_magic_bottom",
+	"templebrick_thick_static",
+	"templebrick_thick_static_noedge",
+	"templeslab_static",
+	"templeslab_crumbling_static",
+	"the_end",
+	"steel_rusted_no_holes",
+	"steel_grey_static",
+	"fungi_yellow",
+	"skullrock",
+	"water_static",
+	"endslime_static",
+	"slime_static",
+	"spore_pod_stalk",
+	"water",
+	"water_temp",
+	"water_ice",
+	"water_swamp",
+	"oil",
+	"alcohol",
+	"beer",
+	"milk",
+	"molut",
+	"sima",
+	"juhannussima",
+	"magic_liquid",
+	"material_confusion",
+	"material_darkness",
+	"material_rainbow",
+	"magic_liquid_weakness",
+	"magic_liquid_movement_faster",
+	"magic_liquid_faster_levitation",
+	"magic_liquid_faster_levitation_and_movement",
+	"magic_liquid_worm_attractor",
+	"magic_liquid_protection_all",
+	"magic_liquid_mana_regeneration",
+	"magic_liquid_unstable_teleportation",
+	"magic_liquid_teleportation",
+	"magic_liquid_hp_regeneration",
+	"magic_liquid_hp_regeneration_unstable",
+	"magic_liquid_polymorph",
+	"magic_liquid_random_polymorph",
+	"magic_liquid_unstable_polymorph",
+	"magic_liquid_berserk",
+	"magic_liquid_charm",
+	"magic_liquid_invisibility",
+	"cloud_radioactive",
+	"cloud_blood",
+	"cloud_slime",
+	"swamp",
+	"blood",
+	"blood_fading",
+	"blood_fungi",
+	"blood_worm",
+	"porridge",
+	"blood_cold",
+	"radioactive_liquid",
+	"radioactive_liquid_fading",
+	"plasma_fading",
+	"gold_molten",
+	"wax_molten",
+	"silver_molten",
+	"copper_molten",
+	"brass_molten",
+	"glass_molten",
+	"glass_broken_molten",
+	"steel_molten",
+	"creepy_liquid",
+	"cement",
+	"slime",
+	"slush",
+	"vomit",
+	"plastic_red_molten",
+	"acid",
+	"lava",
+	"urine",
+	"rocket_particles",
+	"peat",
+	"plastic_prop_molten",
+	"plastic_molten",
+	"slime_yellow",
+	"slime_green",
+	"aluminium_oxide_molten",
+	"steel_rust_molten",
+	"metal_prop_molten",
+	"aluminium_robot_molten",
+	"aluminium_molten",
+	"metal_nohit_molten",
+	"metal_rust_molten",
+	"metal_molten",
+	"metal_sand_molten",
+	"steelsmoke_static_molten",
+	"steelmoss_static_molten",
+	"steelmoss_slanted_molten",
+	"steel_static_molten",
+	"plasma_fading_bright",
+	"radioactive_liquid_yellow",
+	"cursed_liquid",
+	"poison",
+	"blood_fading_slow",
+	"pus",
+	"midas",
+	"midas_precursor",
+	"liquid_fire_weak",
+	"liquid_fire",
+	"just_death",
+	"mimic_liquid",
+	"void_liquid",
+	"water_salt",
+	"water_fading",
+	"pea_soup",
+	"smoke",
+	"cloud",
+	"cloud_lighter",
+	"smoke_explosion",
+	"steam",
+	"acid_gas",
+	"acid_gas_static",
+	"smoke_static",
+	"blood_cold_vapour",
+	"sand_herb_vapour",
+	"radioactive_gas",
+	"radioactive_gas_static",
+	"magic_gas_hp_regeneration",
+	"magic_gas_midas",
+	"magic_gas_worm_blood",
+	"rainbow_gas",
+	"magic_gas_polymorph",
+	"magic_gas_weakness",
+	"magic_gas_teleport",
+	"magic_gas_fungus",
+	"alcohol_gas",
+	"poo_gas",
+	"fungal_gas",
+	"poison_gas",
+	"steam_trailer",
+	"smoke_magic",
+	"fire",
+	"spark",
+	"spark_electric",
+	"flame",
+	"fire_blue",
+	"spark_green",
+	"spark_green_bright",
+	"spark_blue",
+	"spark_blue_dark",
+	"spark_red",
+	"spark_red_bright",
+	"spark_white",
+	"spark_white_bright",
+	"spark_yellow",
+	"spark_purple",
+	"spark_purple_bright",
+	"spark_player",
+	"spark_teal"
 ]
