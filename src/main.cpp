@@ -128,7 +128,7 @@ void* CheckGreatChestLoot(int x, int y, uint32_t worldSeed, bool wand)
 	return nullptr;
 }
 
-double search_spiral_result[13] = {};
+double search_spiral_result[15] = {};
 
 double x_center = 0.0;
 double y_center = 0.0;
@@ -213,6 +213,7 @@ bool wand_spiral_step(int x, int y) {
 		search_spiral_result[10] = wand.speed;
 		search_spiral_result[11] = wand.shuffle ? 1 : 0;
 		search_spiral_result[12] = wand.alwaysCast;
+		search_spiral_result[13] = wand.sprite;
 		return true;
 	}
 	return false;

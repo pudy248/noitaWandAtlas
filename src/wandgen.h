@@ -11,6 +11,8 @@
 
 void GetBestSprite(NollaPRNG* rnd, Wand& w)
 {
+	float bestScore = 1000;
+
 	WandSpaceDat gunInWandSpace = {};
 	gunInWandSpace.fire_rate_wait = fminf(fmaxf(((w.delay + 5) / 7.0f) - 1, 0), 4);
 	gunInWandSpace.actions_per_round = fminf(fmaxf(w.multicast - 1, 0), 2);
@@ -18,24 +20,21 @@ void GetBestSprite(NollaPRNG* rnd, Wand& w)
 	gunInWandSpace.deck_capacity = fminf(fmaxf((w.capacity - 3) / 3.0f, 0), 7);
 	gunInWandSpace.spread_degrees = fminf(fmaxf(((w.spread + 5) / 5.0f) - 1, 0), 2);
 	gunInWandSpace.reload_time = fminf(fmaxf(((w.reload + 5) / 25.0f) - 1, 0), 2);
-
-	if (gunInWandSpace.fire_rate_wait - (int)gunInWandSpace.fire_rate_wait != 0) return;
-	if (gunInWandSpace.actions_per_round - (int)gunInWandSpace.actions_per_round != 0) return;
-	if (gunInWandSpace.deck_capacity - (int)gunInWandSpace.deck_capacity != 0) return;
-	if (gunInWandSpace.spread_degrees - (int)gunInWandSpace.spread_degrees != 0) return;
-	if (gunInWandSpace.reload_time - (int)gunInWandSpace.reload_time != 0) return;
-
+	
 	for (int i = 0; i < 1000; i++)
 	{
-		if (wandSprites[i].deck_capacity == gunInWandSpace.deck_capacity)
-		if (wandSprites[i].fire_rate_wait == gunInWandSpace.fire_rate_wait)
-		if (wandSprites[i].actions_per_round == gunInWandSpace.actions_per_round)
-		if (wandSprites[i].spread_degrees == gunInWandSpace.spread_degrees)
-		if (wandSprites[i].reload_time == gunInWandSpace.reload_time)
-		if (wandSprites[i].shuffle_deck_when_empty == gunInWandSpace.shuffle_deck_when_empty)
-		if (rnd->Random(0, 100) < 33) {
+		float score = 0;
+		score += abs(gunInWandSpace.fire_rate_wait - wandSprites[i].fire_rate_wait) * 2;
+		score += abs(gunInWandSpace.actions_per_round - wandSprites[i].actions_per_round) * 20;
+		score += abs(gunInWandSpace.shuffle_deck_when_empty - wandSprites[i].shuffle_deck_when_empty) * 30;
+		score += abs(gunInWandSpace.deck_capacity - wandSprites[i].deck_capacity) * 5;
+		score += abs(gunInWandSpace.spread_degrees - wandSprites[i].spread_degrees);
+		score += abs(gunInWandSpace.reload_time - wandSprites[i].reload_time);
+		if (score <= bestScore) {
+			bestScore = score;
 			w.sprite = i;
-			break;
+			if (score == 0 && rnd->Random(0, 100) < 33)
+				break;
 		}
 	}
 	return;
@@ -235,22 +234,22 @@ void shuffleTable(WandStat table[4], int length, NollaPRNG* random)
 
 void applyReload(Wand* gun, StatProb prob, NollaPRNG* random)
 {
-	int min = fminf(fmaxf(60 - (gun->cost * 5), 1), 240);
-	int max = 1024;
+	float min = fminf(fmaxf(60 - (gun->cost * 5), 1), 240);
+	float max = 1024;
 	gun->reload = (int)fminf(fmaxf(random->RandomDistribution(prob.min, prob.max, prob.mean, prob.sharpness), min), max);
 	gun->cost -= (60 - gun->reload) / 5;
 }
 void applyDelay(Wand* gun, StatProb prob, NollaPRNG* random)
 {
-	int min = fminf(fmaxf(16 - gun->cost, -50), 50);
-	int max = 50;
+	float min = fminf(fmaxf(16 - gun->cost, -50), 50);
+	float max = 50;
 	gun->delay = (int)fminf(fmaxf(random->RandomDistribution(prob.min, prob.max, prob.mean, prob.sharpness), min), max);
 	gun->cost -= 16 - gun->delay;
 }
 void applySpread(Wand* gun, StatProb prob, NollaPRNG* random)
 {
-	int min = fminf(fmaxf(gun->cost / -1.5f, -35), 35);
-	int max = 35;
+	float min = fminf(fmaxf(gun->cost / -1.5f, -35), 35);
+	float max = 35;
 	gun->spread = (int)fminf(fmaxf(random->RandomDistribution(prob.min, prob.max, prob.mean, prob.sharpness), min), max);
 	gun->cost -= 16 - gun->spread;
 }
@@ -260,8 +259,8 @@ void applySpeed(Wand* gun, StatProb prob, NollaPRNG* random)
 }
 void applyCapacity(Wand* gun, StatProb prob, NollaPRNG* random)
 {
-	int min = 1;
-	int max = fminf(fmaxf((gun->cost / 5) + 6, 1), 20);
+	float min = 1;
+	float max = fminf(fmaxf((gun->cost / 5) + 6, 1), 20);
 	if (gun->force_unshuffle)
 	{
 		max = (gun->cost - 15) / 5;
@@ -284,16 +283,16 @@ void applyMulticast(Wand* gun, StatProb prob, NollaPRNG* random)
 			45 + (gun->capacity * gun->capacity)
 	};
 
-	int min = 1;
-	int max = 1;
+	float min = 1;
+	float max = 1;
 	for (int i = 0; i < 5; i++)
 	{
-		if (actionCosts[i] <= gun->cost) max = actionCosts[i];
+		if (actionCosts[i] <= gun->cost) max = i + 1;
 	}
 	max = fminf(fmaxf(max, 1), gun->capacity);
 
 	gun->multicast = (int)floor(fminf(fmaxf(random->RandomDistribution(prob.min, prob.max, prob.mean, prob.sharpness), min), max));
-	gun->cost -= actionCosts[(int)(fminf(fmaxf(gun->multicast, 1), 5) - 1)];
+	gun->cost -= actionCosts[(int)(fminf(fmaxf(gun->multicast, 1), 5)) - 1];
 }
 void applyShuffle(Wand* gun, StatProb prob, NollaPRNG* random)
 {

@@ -320,6 +320,7 @@ function update_orbs()
 			var search_speead = getValue(search_spiral_result_ptr+80, "double");
 			var search_shuffle = getValue(search_spiral_result_ptr+88, "double");
 			var search_ac = getValue(search_spiral_result_ptr+96, "double");
+			var search_sprite = getValue(search_spiral_result_ptr+104, "double");
 
 			//make ranges for rounding imprecision
 			//this continues to be the worst way to implement these things
@@ -351,6 +352,7 @@ function update_orbs()
 			if(search_ac > 0) {
 				output.innerHTML += "<p>Always Cast: " + SpellNames[search_ac] + "<\p>";
 			}
+			output.innerHTML += "<p>Sprite: #" + search_sprite + "<\p>";
 		}
         status.innerHTML = "";
     }
