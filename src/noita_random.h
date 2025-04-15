@@ -10,12 +10,10 @@ typedef unsigned long long int uint64_t;
 // Thanks to kaliuresis!
 // Check out his orb atlas repository: https://github.com/kaliuresis/noa
 
-class NollaPRNG
-{
+class NollaPRNG {
 public:
 	
-		NollaPRNG(uint32_t worldSeed)
-	{
+	NollaPRNG(uint32_t worldSeed) {
 		world_seed = worldSeed;
 		Seed = worldSeed;
 	}
@@ -23,8 +21,7 @@ public:
 	uint32_t world_seed = 0;
 	int Seed;
 
-	uint64_t SetRandomSeedHelper(double r)
-	{
+	uint64_t SetRandomSeedHelper(double r) {
 		uint64_t e = *(uint64_t*)&r;
 		e &= 0x7fffffffffffffff;
 	
@@ -40,8 +37,7 @@ public:
 		return b & 0xffffffff;
 	}
 
-	uint32_t SetRandomSeedHelper2(uint32_t a, uint32_t b, uint32_t ws)
-	{
+	uint32_t SetRandomSeedHelper2(uint32_t a, uint32_t b, uint32_t ws) {
 		uint32_t uVar1;
 		uint32_t uVar2;
 		uint32_t uVar3;
@@ -57,8 +53,7 @@ public:
 		return (uVar3 - uVar2) - uVar1 ^ uVar1 >> 0xf;
 	}
 
-	void SetRandomSeed(double x, double y)
-	{
+	void SetRandomSeed(double x, double y) {
 		uint32_t ws = world_seed;
 		uint32_t a = ws ^ 0x93262e6f;
 		uint32_t b = a & 0xfff;
@@ -72,12 +67,10 @@ public:
 
 		uint64_t _x = *(uint64_t*)&x_ & 0x7fffffffffffffff;
 		uint64_t _y = *(uint64_t*)&y_ & 0x7fffffffffffffff;
-		if (102400.0 <= *(double*)&_y || *(double*)&_x <= 1.0)
-		{
+		if (102400.0 <= *(double*)&_y || *(double*)&_x <= 1.0) {
 			r = y_ * 134217727.0;
 		}
-		else
-		{
+		else {
 			double y__ = y_ * 3483.328;
 			double t = (double)e;
 			y__ += t;
@@ -105,9 +98,8 @@ public:
 		}
 	}
 
-	
-	uint64_t SetRandomSeedHelperInt(long long r)
-	{
+	// Not present in Noita, provided for optimization purposes
+	uint64_t SetRandomSeedHelperInt(long long r) {
 		double dr = r;
 		uint64_t e = *(uint64_t*)&dr;
 		e &= 0x7fffffffffffffff;
@@ -124,8 +116,8 @@ public:
 		return b & 0xffffffff;
 	}
 
-	void SetRandomSeedInt(int x, int y)
-	{
+	// Not present in Noita, provided for optimization purposes
+	void SetRandomSeedInt(int x, int y) {
 		uint32_t ws = world_seed;
 		uint32_t a = ws ^ 0x93262e6f;
 		int b = a & 0xfff;
@@ -139,12 +131,10 @@ public:
 
 		int _x = abs(x_);
 		int _y = abs(y_);
-		if (102400 <= _y || _x <= 1)
-		{
+		if (102400 <= _y || _x <= 1) {
 			r = y_ * 134217727LLU;
 		}
-		else
-		{
+		else {
 			double y__ = y_ * 3483.328;
 			double t = (double)e;
 			y__ += t;
@@ -164,19 +154,16 @@ public:
 		Next();
 
 		uint32_t h = ws & 3;
-		while (h > 0)
-		{
+		while (h > 0) {
 			Next();
 			h--;
 		}
 	}
 
 	
-	float Next()
-	{
+	float Next() {
 		int v4 = Seed * 0x41a7 + (Seed / 0x1f31d) * -0x7fffffff;
-		if (v4 < 0)
-		{
+		if (v4 < 0) {
 			v4 += 0x7fffffff;
 		}
 		Seed = v4;
@@ -184,11 +171,9 @@ public:
 	}
 
 	
-	double NextD()
-	{
+	double NextD() {
 		int v4 = Seed * 0x41a7 + (Seed / 0x1f31d) * -0x7fffffff;
-		if (v4 < 0)
-		{
+		if (v4 < 0) {
 			v4 += 0x7fffffff;
 		}
 		Seed = v4;
@@ -196,50 +181,42 @@ public:
 	}
 
 	
-	int Random(int a, int b)
-	{
+	int Random(int a, int b) {
 		int v4 = Seed * 0x41a7 + (Seed / 0x1f31d) * -0x7fffffff;
 		if (v4 < 0)
 		{
 			v4 += 0x7fffffff;
 		}
 		Seed = v4;
-		return a + (int)(((uint64_t)(b + 1 - a) * (uint64_t)Seed) >> 31);
+		return a + (int)(((double)(b - a + 1) * (double)Seed * 4.656612875e-10));
 	}
 
 	
-	float ProceduralRandomf(double x, double y, float a, float b)
-	{
+	float ProceduralRandomf(double x, double y, float a, float b) {
 		SetRandomSeed(x, y);
 		return a + ((b - a) * Next());
 	}
 
 	
-	int ProceduralRandomi(double x, double y, int a, int b)
-	{
+	int ProceduralRandomi(double x, double y, int a, int b) {
 		SetRandomSeed(x, y);
 		return Random(a, b);
 	}
 
-	float GetDistribution(float mean, float sharpness, float baseline)
-	{
+	float GetDistribution(float mean, float sharpness, float baseline) {
 		int i = 0;
-		do
-		{
+		do {
 			float r1 = Next();
 			float r2 = Next();
 			float div = fabsf(r1 - mean);
-			if (r2 < ((1.0f - div) * baseline))
-			{
+			if (r2 < ((1.0f - div) * baseline)) {
 				return r1;
 			}
-			if (div < 0.5f)
-			{
+			if (div < 0.5f) {
 				// double v11 = sin(((0.5f - mean) + r1) * M_PI);
 				float v11 = sinf(((0.5f - mean) + r1) * 3.1415f);
 				float v12 = powf(v11, sharpness);
-				if (v12 > r2)
-				{
+				if (v12 > r2) {
 					return r1;
 				}
 			}
@@ -249,10 +226,8 @@ public:
 	}
 
 	
-	int RandomDistribution(int min, int max, int mean, float sharpness)
-	{
-		if (sharpness == 0)
-		{
+	int RandomDistribution(int min, int max, int mean, float sharpness) {
+		if (sharpness == 0) {
 			return Random(min, max);
 		}
 
@@ -263,16 +238,13 @@ public:
 	}
 
 	
-	int RandomDistribution(float min, float max, float mean, float sharpness)
-	{
+	int RandomDistribution(float min, float max, float mean, float sharpness) {
 		return (int)RandomDistribution((int)min, (int)max, (int)mean, sharpness);
 	}
 
 	
-	float RandomDistributionf(float min, float max, float mean, float sharpness)
-	{
-		if (sharpness == 0.0)
-		{
+	float RandomDistributionf(float min, float max, float mean, float sharpness) {
+		if (sharpness == 0.0) {
 			float r = Next();
 			return (r * (max - min)) + min;
 		}
